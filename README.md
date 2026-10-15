@@ -122,25 +122,3 @@ iga_kl/
 benchmarks/       command-line scripts
 tests/            pytest suite (basis, geometry, kinematics, linear, nonlinear, obstacle course)
 ```
-
-## Formulation notes
-
-* Conventions: DOF `3*cp + k`, `cp = i + n*j`; local DOF `3*a + k` with `a = aa + (p+1)*bb`;
-  second-derivative columns `[ξξ, ηη, ξη]`; Voigt strains `[ε11, ε22, 2ε12]`, `[κ11, κ22, 2κ12]`.
-* Curvature change `κ_ab = B_ab − b_ab` with `b_ab = x_,ab · g_3`; `n = t D ε`, `m = t³/12 D κ`.
-* Linear stiffness = tangent at `u = 0` (`n = m = 0`, no geometric part). The consistent tangent
-  (`kinematics.geometric_stiffness`) is verified against finite differences of the internal force,
-  and the internal force against finite differences of the strain energy.
-* Strains are evaluated from displacement gradients, `ε_ab = ½(G_a·u_,b + G_b·u_,a + u_,a·u_,b)`,
-  and `g_3 − G_3` from `Δ = G_1×u_,2 + u_,1×G_2 + u_,1×u_,2`, avoiding the cancellation that
-  otherwise limits Newton residuals in bending-dominated problems with tiny loads.
-* Symmetry planes (surface normal to the plane): first control-point row `u·n = 0`; second row's
-  two in-plane components coupled to the first row (keeps the transverse tangent's in-plane
-  components, i.e. zero rotation about the edge). Exact for separable weights (all cases here).
-* Clamped edge (Sec. 4.1): first row fixed, second row fixed in the surface-normal direction.
-* Hemisphere pole: degenerate collapsed row. Works without special treatment (as in the paper);
-  `hemisphere(pole_coupling=True)` ties the pole DOFs together (recommended for nonlinear runs).
-* Gauss rule `(p+1)×(q+1)` per knot span. Rational integrands are not integrated exactly; the
-  pressurised-cylinder test shows the residual error drops to 1e-12 with an 8-point rule.
-* Assembly runs single-threaded BLAS (`threadpoolctl`): multi-threaded OpenBLAS is ~100× slower
-  on the small per-element matrix products.
